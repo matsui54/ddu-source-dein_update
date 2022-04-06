@@ -19,7 +19,9 @@ export type ActionData = {
   revNew?: string;
 };
 
-type Params = {};
+type Params = {
+  maxProcess: number;
+};
 
 export type RunResult = {
   status: Deno.ProcessStatus;
@@ -125,30 +127,34 @@ export class Source extends BaseSource<Params> {
           })),
         );
         const synced: string[] = [];
-        const results = pooledMap(8, deins, async (d) => {
-          const revOld = await getRev(d.path);
-          return new Promise<Item<ActionData>>((resolve) => {
-            runInDir(d.path, "git", "pull", "--ff", "--ff-only").then(
-              async ([status, out, stderrOutput]) => {
-                const action: ActionData = {
-                  done: true,
-                  result: {
-                    status,
-                    out: decode(out),
-                    stderrOutput: decode(stderrOutput),
-                  },
-                  path: d.path,
-                  score: Date.now(),
-                  revOld: revOld,
-                };
-                if (action.revNew && action.revOld != action.revNew) {
-                  synced.push(d.name);
-                }
-                resolve(await getDduItem(action, d));
-              },
-            );
-          });
-        });
+        const results = pooledMap(
+          args.sourceParams.maxProcess,
+          deins,
+          async (d) => {
+            const revOld = await getRev(d.path);
+            return new Promise<Item<ActionData>>((resolve) => {
+              runInDir(d.path, "git", "pull", "--ff", "--ff-only").then(
+                async ([status, out, stderrOutput]) => {
+                  const action: ActionData = {
+                    done: true,
+                    result: {
+                      status,
+                      out: decode(out),
+                      stderrOutput: decode(stderrOutput),
+                    },
+                    path: d.path,
+                    score: Date.now(),
+                    revOld: revOld,
+                  };
+                  if (action.revNew && action.revOld != action.revNew) {
+                    synced.push(d.name);
+                  }
+                  resolve(await getDduItem(action, d));
+                },
+              );
+            });
+          },
+        );
         for await (const result of results) {
           controller.enqueue([result]);
         }
@@ -163,6 +169,8 @@ export class Source extends BaseSource<Params> {
   }
 
   params(): Params {
-    return {};
+    return {
+      maxProcess: 32,
+    };
   }
 }
