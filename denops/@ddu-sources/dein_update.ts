@@ -14,6 +14,7 @@ export type ActionData = {
   done: boolean;
   path: string;
   score: number;
+  is_progress?: boolean;
   result?: RunResult;
   revOld?: string;
   revNew?: string;
@@ -125,6 +126,12 @@ export class Source extends BaseSource<Params> {
             word: `...upgrading ${d.repo}`,
             action: { done: false, path: d.path, score: 0 },
           })),
+        );
+        controller.enqueue(
+          [{
+            word: "[]",
+            action: { done: false, path: "", score: 0, is_progress: true },
+          }],
         );
         const synced: string[] = [];
         const results = pooledMap(
