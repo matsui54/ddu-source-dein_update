@@ -22,6 +22,7 @@ export type PluginData = {
   done: boolean;
   path: string;
   score: number;
+  name: string;
   result?: RunResult;
   revOld?: string;
   revNew?: string;
@@ -141,7 +142,7 @@ export class Source extends BaseSource<Params> {
             controller.enqueue(
               [{
                 word: `...upgrading ${d.repo}`,
-                action: { done: false, path: d.path, score: 0 },
+                action: { done: false, path: d.path, score: 0, name: d.name },
               }],
             );
             const revOld = await getRev(d.path);
@@ -168,6 +169,7 @@ export class Source extends BaseSource<Params> {
                     score: Date.now(),
                     revOld: revOld,
                     revNew: await getRev(d.path),
+                    name: d.name,
                   };
                   if (action.revNew && action.revOld != action.revNew) {
                     synced.push(d.name);
