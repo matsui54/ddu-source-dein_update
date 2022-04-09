@@ -13,7 +13,7 @@ import { getOutput } from "../@ddu_dein_update/process.ts";
 type Params = Record<never, never>;
 
 type ViewParams = {
-  pattern: string[];
+  paths: string[];
   fold: boolean;
 };
 
@@ -53,7 +53,7 @@ export class Kind extends BaseKind<Params> {
     },
     "viewDiff": async (args: ActionArguments<Params>) => {
       const params = args.actionParams as ViewParams;
-      const openPattern = params.pattern ? params.pattern : [
+      const openPaths = params.paths ? params.paths : [
         "doc",
         "README",
         "README.md",
@@ -73,7 +73,7 @@ export class Kind extends BaseKind<Params> {
             "diff",
             `${action.revOld}..${action.revNew}`,
             "--",
-            ...openPattern,
+            ...openPaths,
           );
           if (res.trim().length != 0) {
             diffs.push({
