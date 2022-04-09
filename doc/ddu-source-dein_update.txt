@@ -1,4 +1,4 @@
-*ddu-dein_update.txt*			dein upgrader source for ddu.vim
+*ddu-source-dein_update.txt*		Dein upgrader source for ddu.vim
 
 Author: matsui54 <haru.matu9168 at gmail.com>
 License: MIT license
@@ -7,7 +7,7 @@ CONTENTS					*ddu-dein_update-contents*
 
 Introduction		|ddu-dein_update-introduction|
 Install			|ddu-dein_update-install|
-Examples		|ddu-dein_update-examples|
+Usage			|ddu-dein_update-usage|
 Params			|ddu-dein_update-source-params|
 Actions			|ddu-dein_update-actions|
 
@@ -29,7 +29,31 @@ https://github.com/Shougo/dein.vim
 
 
 ==============================================================================
-EXAMPLES				*ddu-dein_update-examples*
+USAGE					*ddu-dein_update-usage*
+
+You need to specify matcher_dein_update as ddu matcher.
+>
+ call ddu#custom#patch_global({
+     \   'sourceOptions' : {
+     \     'dein_update': {
+     \       'matchers': ['matcher_dein_update'],
+     \     },
+     \   },
+     \   'kindOptions': {
+     \     'dein_update': {
+     \       'defaultAction': 'viewDiff',
+     \     },
+     \   },
+     \   'actionOptions': {
+     \     'echo': {
+     \       'quit': v:false,
+     \     },
+     \     'echoDiff': {
+     \       'quit': v:false,
+     \     },
+     \   },
+     \ })
+<
 
 ==============================================================================
 PARAMS					*ddu-dein_update-source-params*
@@ -40,7 +64,7 @@ maxProcess
 	The max number of processes to update the plugins.
 
 ==============================================================================
-ACTIONS						*ddu-dein_update-actions*
+ACTIONS					*ddu-dein_update-actions*
 
 					*ddu-dein_update-action-echo*
 echo
