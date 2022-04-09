@@ -1,4 +1,5 @@
 import {
+  abortable,
   BaseSource,
   Denops,
   helper,
@@ -10,11 +11,17 @@ import { runInDir } from "../@ddu_dein_update/process.ts";
 import { checkChanged, getDiff, getRev } from "../@ddu_dein_update/git.ts";
 import { decode } from "../@ddu_dein_update/text.ts";
 
-export type ActionData = {
+export type ActionData = ProgressData | PluginData;
+
+export type ProgressData = {
+  isProgress: boolean;
+  numPlugin: number;
+};
+
+export type PluginData = {
   done: boolean;
   path: string;
   score: number;
-  is_progress?: boolean;
   result?: RunResult;
   revOld?: string;
   revNew?: string;
@@ -59,7 +66,7 @@ export function wordWithHighlights(
 }
 
 async function getDduItem(
-  action: ActionData,
+  action: PluginData,
   dein: Dein,
 ): Promise<Item<ActionData>> {
   if (!action.result?.status.success) {
@@ -74,14 +81,12 @@ async function getDduItem(
       highlights: hls,
     };
   } else {
-    const revNew = await getRev(dein.path);
-    action.revNew = revNew;
-    if (action.revOld && revNew && action.revOld != revNew) {
-      const diff = await getDiff(dein.path, action.revOld, revNew);
+    if (action.revOld && action.revNew && action.revOld != action.revNew) {
+      const diff = await getDiff(dein.path, action.revOld, action.revNew);
       const changed = await checkChanged(
         dein.path,
         action.revOld,
-        revNew,
+        action.revNew,
         "doc",
         "README",
         "README.md",
@@ -115,6 +120,7 @@ export class Source extends BaseSource<Params> {
     denops: Denops;
     sourceParams: Params;
   }): ReadableStream<Item<ActionData>[]> {
+    const abortController = new AbortController();
     return new ReadableStream({
       async start(controller) {
         const deins = Object.values(
@@ -122,15 +128,9 @@ export class Source extends BaseSource<Params> {
         );
 
         controller.enqueue(
-          deins.map((d) => ({
-            word: `...upgrading ${d.repo}`,
-            action: { done: false, path: d.path, score: 0 },
-          })),
-        );
-        controller.enqueue(
           [{
             word: "[]",
-            action: { done: false, path: "", score: 0, is_progress: true },
+            action: { isProgress: true, numPlugin: deins.length },
           }],
         );
         const synced: string[] = [];
@@ -138,9 +138,24 @@ export class Source extends BaseSource<Params> {
           args.sourceParams.maxProcess,
           deins,
           async (d) => {
+            controller.enqueue(
+              [{
+                word: `...upgrading ${d.repo}`,
+                action: { done: false, path: d.path, score: 0 },
+              }],
+            );
             const revOld = await getRev(d.path);
-            return new Promise<Item<ActionData>>((resolve) => {
-              runInDir(d.path, "git", "pull", "--ff", "--ff-only").then(
+            return new Promise<Item<ActionData>>((resolve, reject) => {
+              const proc = runInDir(d.path, "git", "pull", "--ff", "--ff-only");
+              const running = abortable(
+                Promise.all([
+                  proc.status(),
+                  proc.output(),
+                  proc.stderrOutput(),
+                ]),
+                abortController.signal,
+              );
+              running.then(
                 async ([status, out, stderrOutput]) => {
                   const action: ActionData = {
                     done: true,
@@ -152,25 +167,47 @@ export class Source extends BaseSource<Params> {
                     path: d.path,
                     score: Date.now(),
                     revOld: revOld,
+                    revNew: await getRev(d.path),
                   };
                   if (action.revNew && action.revOld != action.revNew) {
                     synced.push(d.name);
                   }
                   resolve(await getDduItem(action, d));
                 },
-              );
+              ).catch((e) => {
+                if (e instanceof DOMException) {
+                  proc.kill("SIGTERM");
+                }
+                reject(e);
+              });
             });
           },
         );
-        for await (const result of results) {
-          controller.enqueue([result]);
+        try {
+          for await (const result of results) {
+            controller.enqueue([result]);
+          }
+        } catch (e: unknown) {
+          if (e instanceof AggregateError) {
+            for (const error of e.errors) {
+              if (!(error instanceof DOMException)) {
+                console.error(error);
+              } else {
+                // console.log("cancel");
+              }
+            }
+          }
         }
-        controller.close();
         if (synced.length != 0) {
           await helper.echo(args.denops, "Executing post sync process");
           await args.denops.call("dein#post_sync", synced);
         }
         await helper.echo(args.denops, "Done");
+        controller.close();
+      },
+
+      cancel(reason): void {
+        abortController.abort(reason);
       },
     });
   }

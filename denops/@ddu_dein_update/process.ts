@@ -34,16 +34,11 @@ export async function getOutput(
   return decode(stdout);
 }
 
-export function runInDir(dir: string, ...cmds: string[]) {
-  const proc = Deno.run({
+export function runInDir(dir: string, ...cmds: string[]): Deno.Process {
+  return Deno.run({
     cmd: cmds,
     stdout: "piped",
     stderr: "piped",
     cwd: dir,
   });
-  return Promise.all([
-    proc.status(),
-    proc.output(),
-    proc.stderrOutput(),
-  ]);
 }

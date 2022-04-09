@@ -15,6 +15,9 @@ export class Kind extends BaseKind<Params> {
   actions = {
     "echo": async (args: ActionArguments<Params>) => {
       const action = args.items[0].action as ActionData;
+      if ("isProgress" in action) {
+        return ActionFlags.Persist;
+      }
       const res = action.result;
       if (res) {
         await helper.echo(args.denops, res.out + res.stderrOutput);
@@ -23,6 +26,9 @@ export class Kind extends BaseKind<Params> {
     },
     "echoDiff": async (args: ActionArguments<Params>) => {
       const action = args.items[0].action as ActionData;
+      if ("isProgress" in action) {
+        return ActionFlags.Persist;
+      }
       if (action.revOld && action.revNew && action.revOld != action.revNew) {
         const res = await getOutput(
           action.path,

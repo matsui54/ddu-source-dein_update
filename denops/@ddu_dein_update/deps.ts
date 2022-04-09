@@ -13,4 +13,7 @@ export * as autocmd from "https://deno.land/x/denops_std@v3.3.0/autocmd/mod.ts";
 export { isLike } from "https://deno.land/x/unknownutil@v2.0.0/mod.ts";
 export * from "https://deno.land/x/ddu_vim@v1.4.0/types.ts";
 export * as buffer from "https://deno.land/x/denops_std@v3.3.0/buffer/mod.ts";
-export { pooledMap } from "https://deno.land/std@0.133.0/async/mod.ts";
+export {
+  abortable,
+  pooledMap,
+} from "https://deno.land/std@0.133.0/async/mod.ts";
