@@ -1,0 +1,68 @@
+*ddu-dein_update.txt*			dein upgrader source for ddu.vim
+
+Author: matsui54 <haru.matu9168 at gmail.com>
+License: MIT license
+
+CONTENTS					*ddu-dein_update-contents*
+
+Introduction		|ddu-dein_update-introduction|
+Install			|ddu-dein_update-install|
+Examples		|ddu-dein_update-examples|
+Params			|ddu-dein_update-source-params|
+Actions			|ddu-dein_update-actions|
+
+
+==============================================================================
+INTRODUCTION				*ddu-dein_update-introduction*
+
+This source updates the plugins installed by dein.vim and output the result
+to ddu buffer.
+
+==============================================================================
+INSTALL					*ddu-dein_update-install*
+
+Please install both "ddu.vim", "denops.vim" and "dein.vim".
+
+https://github.com/Shougo/ddu.vim
+https://github.com/vim-denops/denops.vim
+https://github.com/Shougo/dein.vim
+
+
+==============================================================================
+EXAMPLES				*ddu-dein_update-examples*
+
+==============================================================================
+PARAMS					*ddu-dein_update-source-params*
+
+				  *ddu-dein_update-source-param-maxProcess*
+maxProcess	
+	number (default 32)
+	The max number of processes to update the plugins.
+
+==============================================================================
+ACTIONS						*ddu-dein_update-actions*
+
+					*ddu-dein_update-action-echo*
+echo
+	Echo the output of `git pull` command.
+
+					*ddu-dein_update-action-echoDiff*
+echoDiff
+	Echo the diff of update.
+
+					*ddu-dein_update-action-viewDiff*
+viewDiff
+	Create a new buffer with the diffs of selected plugins.
+	The following params are available.
+
+	paths:	string[] 
+		(default ["doc", "README", "README.md"])
+		Paths to show the diffs.
+
+	fold:	boolean
+		(default true)
+		If it is true and multiple plugins are selected, each diff of
+		plugins is folded.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:noet:fen:noet:
