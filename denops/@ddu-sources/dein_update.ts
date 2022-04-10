@@ -30,6 +30,7 @@ export type PluginData = {
 
 type Params = {
   maxProcess: number;
+  useGraphQL: boolean;
 };
 
 export type RunResult = {
@@ -114,6 +115,19 @@ async function getDduItem(
   }
 }
 
+async function getPlugins(
+  denops: Denops,
+  useGraphQL: boolean,
+): Promise<Dein[]> {
+  if (useGraphQL) {
+    return (await denops.call("dein#get_updated_plugins")) as Dein[];
+  } else {
+    return Object.values(
+      await denops.call("dein#get") as Record<string, Dein>,
+    );
+  }
+}
+
 export class Source extends BaseSource<Params> {
   kind = "dein_update";
 
@@ -124,9 +138,16 @@ export class Source extends BaseSource<Params> {
     const abortController = new AbortController();
     return new ReadableStream({
       async start(controller) {
-        const deins = Object.values(
-          await args.denops.call("dein#get") as Record<string, Dein>,
+        const deins = await getPlugins(
+          args.denops,
+          args.sourceParams.useGraphQL,
         );
+
+        if (deins.length == 0) {
+          await helper.echo(args.denops, "Nothing to update");
+          controller.close();
+          return;
+        }
 
         controller.enqueue(
           [{
@@ -217,6 +238,7 @@ export class Source extends BaseSource<Params> {
   params(): Params {
     return {
       maxProcess: 32,
+      useGraphQL: false,
     };
   }
 }

@@ -63,6 +63,14 @@ maxProcess
 	number (default 32)
 	The max number of processes to update the plugins.
 
+				  *ddu-dein_update-source-param-useGraphQL*
+useGraphQL	
+	boolean (default false)
+	If it is true, plugins are updated using github GraphQL API, which is
+	the same behavior as |dein#check_update()|.
+	Note: You need to set |g:dein#install_github_api_token| to use
+	the feature.
+
 ==============================================================================
 ACTIONS					*ddu-dein_update-actions*
 
