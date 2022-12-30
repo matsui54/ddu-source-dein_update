@@ -14,11 +14,12 @@ import { decode } from "../@ddu_dein_update/text.ts";
 export type ActionData = ProgressData | PluginData;
 
 export type ProgressData = {
-  isProgress: boolean;
+  kind: "progress";
   numPlugin: number;
 };
 
 export type PluginData = {
+  kind: "plugin";
   done: boolean;
   path: string;
   score: number;
@@ -152,7 +153,7 @@ export class Source extends BaseSource<Params> {
         controller.enqueue(
           [{
             word: "[]",
-            action: { isProgress: true, numPlugin: deins.length },
+            action: { kind: "progress", numPlugin: deins.length },
           }],
         );
         const synced: string[] = [];
@@ -163,7 +164,13 @@ export class Source extends BaseSource<Params> {
             controller.enqueue(
               [{
                 word: `...upgrading ${d.repo}`,
-                action: { done: false, path: d.path, score: 0, name: d.name },
+                action: {
+                  kind: "plugin",
+                  done: false,
+                  path: d.path,
+                  score: 0,
+                  name: d.name,
+                },
               }],
             );
             const revOld = await getRev(d.path);
@@ -180,6 +187,7 @@ export class Source extends BaseSource<Params> {
               running.then(
                 async ([status, out, stderrOutput]) => {
                   const action: ActionData = {
+                    kind: "plugin",
                     done: true,
                     result: {
                       status,

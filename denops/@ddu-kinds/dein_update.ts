@@ -4,8 +4,10 @@ import {
   BaseKind,
   batch,
   buffer,
+  DduItem,
   fn,
   helper,
+  Previewer,
 } from "../@ddu_dein_update/deps.ts";
 import { ActionData } from "../@ddu-sources/dein_update.ts";
 import { getOutput } from "../@ddu_dein_update/process.ts";
@@ -26,7 +28,7 @@ export class Kind extends BaseKind<Params> {
   actions = {
     "echo": async (args: ActionArguments<Params>) => {
       const action = args.items[0].action as ActionData;
-      if ("isProgress" in action) {
+      if (action.kind == "progress") {
         return ActionFlags.Persist;
       }
       const res = action.result;
@@ -37,7 +39,7 @@ export class Kind extends BaseKind<Params> {
     },
     "echoDiff": async (args: ActionArguments<Params>) => {
       const action = args.items[0].action as ActionData;
-      if ("isProgress" in action) {
+      if (action.kind == "progress") {
         return ActionFlags.Persist;
       }
       if (action.revOld && action.revNew && action.revOld != action.revNew) {
@@ -63,7 +65,7 @@ export class Kind extends BaseKind<Params> {
       const diffs: PluginDiff[] = [];
       for (const item of args.items) {
         const action = item.action as ActionData;
-        if ("isProgress" in action) {
+        if (action.kind == "progress") {
           continue;
         }
         if (action.revOld && action.revNew && action.revOld != action.revNew) {
@@ -115,5 +117,21 @@ export class Kind extends BaseKind<Params> {
   };
   params(): Params {
     return {};
+  }
+
+  getPreviewer(args: {
+    item: DduItem;
+  }): Promise<Previewer | undefined> {
+    const action = args.item.action as ActionData;
+    if (!action) {
+      return Promise.resolve(undefined);
+    }
+    if (action.kind == "plugin" && action.result) {
+      return Promise.resolve({
+        kind: "nofile",
+        contents: action.result.out.split("\n"),
+      });
+    }
+    return Promise.resolve(undefined);
   }
 }

@@ -17,11 +17,11 @@ export class Filter extends BaseFilter<Params> {
     filterParams: Params;
   }): Promise<DduItem[]> {
     const pluginMap: Record<string, DduItem> = {};
-    let progress: DduItem;
+    let progress: DduItem | undefined = undefined;
     let numDone = 0;
     for (const item of args.items) {
       const action = item.action as ActionData;
-      if ("isProgress" in action) {
+      if (action.kind == "progress") {
         progress = item;
         continue;
       }
