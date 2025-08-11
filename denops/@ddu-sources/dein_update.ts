@@ -7,7 +7,7 @@ import {
   ItemHighlight,
   pooledMap,
 } from "../@ddu_dein_update/deps.ts";
-import { runInDir } from "../@ddu_dein_update/process.ts";
+import { getCommand } from "../@ddu_dein_update/process.ts";
 import { checkChanged, getDiff, getRev } from "../@ddu_dein_update/git.ts";
 import { decode } from "../@ddu_dein_update/text.ts";
 
@@ -35,7 +35,7 @@ type Params = {
 };
 
 export type RunResult = {
-  status: Deno.ProcessStatus;
+  code: number;
   out: string;
   stderrOutput: string;
 };
@@ -72,7 +72,7 @@ async function getDduItem(
   action: PluginData,
   dein: Dein,
 ): Promise<Item<ActionData>> {
-  if (!action.result?.status.success) {
+  if (action.result?.code !== 0) {
     const [word, hls] = wordWithHighlights([
       ["failure", "Error"],
       [" " + dein.repo],
@@ -130,9 +130,9 @@ async function getPlugins(
 }
 
 export class Source extends BaseSource<Params> {
-  kind = "dein_update";
+  override kind = "dein_update";
 
-  gather(args: {
+  override gather(args: {
     denops: Denops;
     sourceParams: Params;
   }): ReadableStream<Item<ActionData>[]> {
@@ -175,24 +175,27 @@ export class Source extends BaseSource<Params> {
             );
             const revOld = await getRev(d.path);
             return new Promise<Item<ActionData>>((resolve, reject) => {
-              const proc = runInDir(d.path, "git", "pull", "--ff", "--ff-only");
+              const command = getCommand(
+                d.path,
+                "git",
+                "pull",
+                "--ff",
+                "--ff-only",
+              );
+              const proc = command.spawn();
               const running = abortable(
-                Promise.all([
-                  proc.status(),
-                  proc.output(),
-                  proc.stderrOutput(),
-                ]),
+                proc.output(),
                 abortController.signal,
               );
               running.then(
-                async ([status, out, stderrOutput]) => {
+                async ({ code, stdout, stderr }) => {
                   const action: ActionData = {
                     kind: "plugin",
                     done: true,
                     result: {
-                      status,
-                      out: decode(out),
-                      stderrOutput: decode(stderrOutput),
+                      code,
+                      out: decode(stdout),
+                      stderrOutput: decode(stderr),
                     },
                     path: d.path,
                     score: Date.now(),
@@ -243,7 +246,7 @@ export class Source extends BaseSource<Params> {
     });
   }
 
-  params(): Params {
+  override params(): Params {
     return {
       maxProcess: 32,
       useGraphQL: false,

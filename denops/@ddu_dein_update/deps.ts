@@ -1,19 +1,26 @@
-export type { Denops } from "https://deno.land/x/denops_std@v4.3.3/mod.ts";
+export type { Denops } from "jsr:@denops/std@7.6.0";
+export { batch, collect } from "jsr:@denops/std@7.6.0/batch";
+export * as op from "jsr:@denops/std@7.6.0/option";
+export * as path from "jsr:@std/path@1.1.1";
+export { abortable, pooledMap } from "jsr:@std/async@1.0.14";
+export * as fn from "jsr:@denops/std@7.6.0/function";
+export * as nvimFn from "jsr:@denops/std@7.6.0/function/nvim";
+export * as vars from "jsr:@denops/std@7.6.0/variable";
+export * as autocmd from "jsr:@denops/std@7.6.0/autocmd";
+export * as buffer from "jsr:@denops/std@7.6.0/buffer";
+export * as helper from "jsr:@denops/std@7.6.0/helper";
 export {
-  batch,
-  gather,
-} from "https://deno.land/x/denops_std@v4.3.3/batch/mod.ts";
-export * as op from "https://deno.land/x/denops_std@v4.3.3/option/mod.ts";
-export * as path from "https://deno.land/std@0.187.0/path/mod.ts";
-export * as fn from "https://deno.land/x/denops_std@v4.3.3/function/mod.ts";
-export * as nvimFn from "https://deno.land/x/denops_std@v4.3.3/function/nvim/mod.ts";
-export * as helper from "https://deno.land/x/denops_std@v4.3.3/helper/mod.ts";
-export * as vars from "https://deno.land/x/denops_std@v4.3.3/variable/mod.ts";
-export * as autocmd from "https://deno.land/x/denops_std@v4.3.3/autocmd/mod.ts";
-export { isLike } from "https://deno.land/x/unknownutil@v2.1.1/mod.ts";
-export * from "https://deno.land/x/ddu_vim@v2.8.4/types.ts";
-export * as buffer from "https://deno.land/x/denops_std@v4.3.3/buffer/mod.ts";
+  is,
+  type Predicate,
+} from "https://deno.land/x/unknownutil@v3.18.1/mod.ts";
 export {
-  abortable,
-  pooledMap,
-} from "https://deno.land/std@0.187.0/async/mod.ts";
+  type ActionArguments,
+  ActionFlags,
+  type DduItem,
+  type Item,
+  type ItemHighlight,
+  type Previewer,
+} from "jsr:@shougo/ddu-vim@~10.4.0/types";
+export { BaseKind } from "jsr:@shougo/ddu-vim@~10.4.0/kind";
+export { BaseFilter } from "jsr:@shougo/ddu-vim@~10.4.0/filter";
+export { BaseSource } from "jsr:@shougo/ddu-vim@~10.4.0/source";

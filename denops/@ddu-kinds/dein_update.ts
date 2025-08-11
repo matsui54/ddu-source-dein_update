@@ -4,7 +4,7 @@ import {
   BaseKind,
   batch,
   buffer,
-  DduItem,
+  Item,
   fn,
   helper,
   Previewer,
@@ -25,7 +25,7 @@ type PluginDiff = {
 };
 
 export class Kind extends BaseKind<Params> {
-  actions = {
+  override actions = {
     "echo": async (args: ActionArguments<Params>) => {
       const action = args.items[0].action as ActionData;
       if (action.kind == "progress") {
@@ -115,12 +115,12 @@ export class Kind extends BaseKind<Params> {
       return ActionFlags.Persist;
     },
   };
-  params(): Params {
+  override params(): Params {
     return {};
   }
 
-  getPreviewer(args: {
-    item: DduItem;
+  override getPreviewer(args: {
+    item: Item;
   }): Promise<Previewer | undefined> {
     const action = args.item.action as ActionData;
     if (!action) {

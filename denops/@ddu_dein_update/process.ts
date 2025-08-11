@@ -15,30 +15,23 @@ export async function getOutput(
   dir: string,
   ...cmds: string[]
 ): Promise<string> {
-  const proc = Deno.run({
-    cmd: cmds,
-    stdout: "piped",
-    stderr: "piped",
-    cwd: dir,
-  });
-  const [status, stdout, stderr] = await Promise.all([
-    proc.status(),
-    proc.output(),
-    proc.stderrOutput(),
-  ]);
-  proc.close();
+  const command = getCommand(dir, ...cmds);
+  const { code, stdout, stderr } = await command.output();
 
-  if (!status.success) {
-    throw new ExecuteError(cmds, status.code, stdout, stderr);
+  if (code !== 0) {
+    throw new ExecuteError(cmds, code, stdout, stderr);
   }
   return decode(stdout);
 }
 
-export function runInDir(dir: string, ...cmds: string[]): Deno.Process {
-  return Deno.run({
-    cmd: cmds,
-    stdout: "piped",
-    stderr: "piped",
-    cwd: dir,
-  });
+export function getCommand(dir: string, ...cmds: string[]): Deno.Command {
+  return new Deno.Command(
+    cmds[0],
+    {
+      args: cmds.slice(1),
+      stdout: "piped",
+      stderr: "piped",
+      cwd: dir,
+    },
+  );
 }
